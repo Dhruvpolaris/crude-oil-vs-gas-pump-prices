@@ -55,4 +55,4 @@ To host it, enable GitHub Pages on this repo (Settings → Pages → deploy from
 
 ## License
 
-Data is from public US government sources (EIA, BLS, FRED). Code is provided as-is; add a license of your choice (MIT is a common default for small visualizations).
+Data is from public US government sources (EIA, BLS, FRED).
