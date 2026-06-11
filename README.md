@@ -2,11 +2,7 @@
 
 An interactive, single-file visualization of how US retail gasoline prices track WTI crude oil, quarterly from 2016 through Q2 2026. Built to make the relationship *talk*: annotated event zones, regional comparisons, inflation adjustment, and a pump-spread view that shows where your money at the pump actually goes.
 
-## Demo
-
-Open `crude-oil-vs-gas-prices.html` in any modern browser. No build step, no server — it's one self-contained HTML file. An internet connection is required for the Chart.js and Google Fonts CDNs.
-
-To host it, enable GitHub Pages on this repo (Settings → Pages → deploy from branch) and the chart will be live at your Pages URL.
+## Demo https://dhruvpolaris.github.io/crude-oil-vs-gas-pump-prices
 
 ## Features
 
