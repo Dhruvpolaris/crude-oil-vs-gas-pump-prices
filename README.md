@@ -51,4 +51,4 @@ An interactive, single-file visualization of how US retail gasoline prices track
 
 ## License
 
-Data is from public US government sources (EIA, BLS, FRED).
+Data is from public US government sources (EIA, BLS, FRED). Standard MIT License.
