@@ -6,7 +6,7 @@ An interactive, single-file visualization of how US retail gasoline prices track
 
 ## Features
 
-- **Dual-axis quarterly chart** — WTI crude ($/bbl) and retail regular gasoline ($/gal), 42 quarters from 2016 Q1 to 2026 Q2 (partial).
+- **Dual-axis quarterly chart** — WTI crude (`$`/bbl) and retail regular gasoline (`$`/gal), 42 quarters from 2016 Q1 to 2026 Q2 (partial).
 - **Region selector** — switch between the US average and the five EIA PADD regions: East Coast, Midwest, Gulf Coast, Rocky Mountain, and West Coast.
 - **Inflation toggle** — view prices in nominal dollars or real 2026 dollars (deflated with annual CPI-U). In real terms, the 2022 Ukraine-era peak (~$123/bbl) still tops the 2026 Iran-war spike.
 - **Pump spread view** — plots pump price minus crude cost per gallon (WTI ÷ 42). This gap covers refining, distribution, retail margin, and taxes, and tells a different story than prices alone: the COVID quarter appears as a spike, not a dip.
