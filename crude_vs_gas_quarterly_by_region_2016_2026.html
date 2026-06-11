@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Crude Oil vs Gas Pump Prices · 2016–2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-annotation/3.0.1/chartjs-plugin-annotation.min.js"></script>
+<style>
+  :root {
+    --bg-page: #faf9f5;
+    --bg-surface: #ffffff;
+    --bg-muted: #f0eee6;
+    --text-primary: #1f1e1c;
+    --text-secondary: #6e6c64;
+    --text-tertiary: #91907f;
+    --border: #dedcd1;
+    --link: #185fa5;
+    --crude: #185fa5;
+    --gas: #d85a30;
+    --spread: #0f6e56;
+    --drop-fill: rgba(226, 75, 74, 0.09);
+    --drop-text: #e24b4a;
+    --surge-fill: rgba(239, 159, 39, 0.10);
+    --surge-text: #ba7517;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg-page: #262624;
+      --bg-surface: #30302e;
+      --bg-muted: #3a3a37;
+      --text-primary: #f0efea;
+      --text-secondary: #b8b5a9;
+      --text-tertiary: #8e8c80;
+      --border: #4a4a45;
+      --link: #85b7eb;
+      --crude: #85b7eb;
+      --gas: #f0997b;
+      --spread: #5dcaa5;
+      --drop-fill: rgba(226, 75, 74, 0.14);
+      --drop-text: #f09595;
+      --surge-fill: rgba(239, 159, 39, 0.14);
+      --surge-text: #fac775;
+    }
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg-page);
+    color: var(--text-primary);
+    font-size: 16px;
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+  }
+  .container { width: 50%; margin: 0 auto; padding: 2.5rem 0 3rem; }
+  @media (max-width: 1100px) { .container { width: 75%; } }
+  @media (max-width: 720px)  { .container { width: 92%; } }
+  h1 { font-size: 22px; font-weight: 500; text-align: center; margin-bottom: 4px; }
+  .subtitle { font-size: 14px; color: var(--text-secondary); text-align: center; margin-bottom: 24px; }
+  .btn-row { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin-bottom: 12px; }
+  .toggle-row { display: flex; flex-wrap: wrap; gap: 20px; align-items: center; justify-content: center; margin-bottom: 18px; font-size: 13px; }
+  .toggle-group { display: flex; align-items: center; gap: 6px; }
+  .toggle-group .label { color: var(--text-secondary); }
+  button {
+    font-family: inherit; font-size: 13px; font-weight: 400;
+    color: var(--text-primary);
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 6px 14px;
+    cursor: pointer;
+    transition: background 0.12s ease, border-color 0.12s ease;
+  }
+  button:hover { background: var(--bg-muted); }
+  button:active { transform: scale(0.98); }
+  button:focus-visible { outline: 2px solid var(--link); outline-offset: 2px; }
+  button.small { font-size: 12px; padding: 4px 12px; }
+  button.active { background: var(--bg-muted); border-color: var(--text-tertiary); }
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 18px; }
+  .metric {
+    background: var(--bg-muted);
+    border-radius: 8px;
+    padding: 1rem;
+    text-align: center;
+  }
+  .metric .label { font-size: 13px; color: var(--text-secondary); }
+  .metric .value { font-size: 24px; font-weight: 500; margin-top: 2px; }
+  .metric .sub { font-size: 12px; color: var(--text-tertiary); margin-top: 2px; }
+  .legend { display: flex; flex-wrap: wrap; gap: 16px; justify-content: center; margin-bottom: 8px; font-size: 12px; color: var(--text-secondary); }
+  .legend span { display: flex; align-items: center; gap: 5px; }
+  .swatch-line { width: 18px; height: 0; }
+  .swatch-box { width: 10px; height: 10px; border-radius: 2px; }
+  .chart-wrap { position: relative; width: 100%; height: 380px; }
+  .insights { display: grid; grid-template-columns: 1fr; gap: 12px; margin-top: 20px; }
+  @media (min-width: 1400px) { .insights { grid-template-columns: 1fr 1fr; } }
+  .insight {
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1rem 1.25rem;
+  }
+  .insight-head { display: flex; align-items: center; gap: 8px; justify-content: center; margin-bottom: 6px; }
+  .num {
+    width: 22px; height: 22px; border-radius: 50%;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 500; flex-shrink: 0;
+  }
+  .num.drop  { background: rgba(226, 75, 74, 0.15); color: var(--drop-text); }
+  .num.surge { background: rgba(239, 159, 39, 0.18); color: var(--surge-text); }
+  .insight-title { font-size: 14px; font-weight: 500; }
+  .insight p { font-size: 13px; color: var(--text-secondary); line-height: 1.6; text-align: center; }
+  footer { border-top: 1px solid var(--border); margin-top: 26px; padding-top: 14px; text-align: center; }
+  footer .head { font-size: 13px; font-weight: 500; margin-bottom: 6px; }
+  footer p { font-size: 12px; color: var(--text-tertiary); line-height: 1.8; }
+  footer p + p { margin-top: 8px; }
+  footer a { color: var(--link); text-decoration: none; }
+  footer a:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+<main class="container">
+  <h1>Crude oil vs gas pump prices</h1>
+  <p class="subtitle">Quarterly, 2016 – Q2 2026 · WTI benchmark vs EIA regional retail gasoline</p>
+
+  <div class="btn-row" id="regionBtns"></div>
+  <div class="toggle-row">
+    <div class="toggle-group"><span class="label">Dollars:</span><span id="dollarBtns" style="display:inline-flex;gap:4px;"></span></div>
+    <div class="toggle-group"><span class="label">View:</span><span id="viewBtns" style="display:inline-flex;gap:4px;"></span></div>
+  </div>
+
+  <div class="cards">
+    <div class="metric">
+      <div class="label" id="card1Label">WTI crude, Q2 2026</div>
+      <div class="value" id="card1Value">$89/bbl</div>
+      <div class="sub" id="card1Sub">+49% since Jan</div>
+    </div>
+    <div class="metric">
+      <div class="label" id="card2Label">Gas, US average, Q2 2026</div>
+      <div class="value" id="card2Value">$4.30/gal</div>
+      <div class="sub" id="card2Sub">+32% vs Q1</div>
+    </div>
+    <div class="metric">
+      <div class="label" id="card3Label">Crude–gas correlation</div>
+      <div class="value" id="card3Value">0.95</div>
+      <div class="sub" id="card3Sub">42 quarters</div>
+    </div>
+  </div>
+
+  <div class="legend">
+    <span id="leg1"><span class="swatch-line" id="leg1Swatch"></span><span id="leg1Text">WTI crude ($/bbl, left)</span></span>
+    <span id="leg2"><span class="swatch-line" id="leg2Swatch"></span><span id="leg2Text">Gasoline — US average ($/gal, right)</span></span>
+    <span><span class="swatch-box" style="background: rgba(226,75,74,0.25);"></span>Drop</span>
+    <span><span class="swatch-box" style="background: rgba(239,159,39,0.28);"></span>Surge</span>
+  </div>
+
+  <div class="chart-wrap">
+    <canvas id="qChart" role="img" aria-label="Quarterly crude oil and gasoline prices 2016 to 2026 with inflation adjustment and pump spread views"></canvas>
+  </div>
+
+  <div class="insights">
+    <div class="insight">
+      <div class="insight-head"><span class="num drop">1</span><span class="insight-title">Late 2018 — oversupply slide</span></div>
+      <p>Record US shale output plus trade-war demand fears cut crude ~40% in a quarter. Pump prices followed within weeks. In the spread view this period is calm — the gap barely moves when crude is the only thing changing.</p>
+    </div>
+    <div class="insight">
+      <div class="insight-head"><span class="num drop">2</span><span class="insight-title">Q2 2020 — COVID demand crash</span></div>
+      <p>WTI averaged ~$28 and briefly went negative, yet gas only fell to ~$1.94. In the spread view this shows up as a spike, not a dip — crude collapsed faster than pump prices, so the gap temporarily widened.</p>
+    </div>
+    <div class="insight">
+      <div class="insight-head"><span class="num surge">3</span><span class="insight-title">2022 — Ukraine invasion spike</span></div>
+      <p>WTI hit a $108 quarterly average and gas set records. In real 2026 dollars this remains the decade's true peak — crude near $123 adjusted. The spread also blew out as refining capacity shortages let margins balloon.</p>
+    </div>
+    <div class="insight">
+      <div class="insight-head"><span class="num surge">4</span><span class="insight-title">2026 — Iran war, still unfolding</span></div>
+      <p>Crude is up ~49% since January after the Strait of Hormuz closure. In real dollars Q2 2026 crude (~$89) is still well below the 2022 peak — though the spread is widening again as refined products outrun crude.</p>
+    </div>
+  </div>
+
+  <footer>
+    <div class="head">Sources</div>
+    <p>
+      Gasoline prices: <a href="https://www.eia.gov/petroleum/gasdiesel/" target="_blank" rel="noopener">EIA Gasoline and Diesel Fuel Update</a> and
+      <a href="https://www.eia.gov/dnav/pet/pet_pri_gnd_a_epmr_pte_dpgal_w.htm" target="_blank" rel="noopener">EIA Weekly Retail Gasoline Prices by PADD region</a> ·
+      Crude oil: <a href="https://fred.stlouisfed.org/series/GASREGW" target="_blank" rel="noopener">FRED / EIA WTI spot price series</a> ·
+      2026 market context: <a href="https://www.eia.gov/todayinenergy/detail.php?id=67424" target="_blank" rel="noopener">EIA Today in Energy, Apr 2026</a> and
+      <a href="https://www.dallasfed.org/~/media/documents/research/papers/2026/wp2609.pdf" target="_blank" rel="noopener">Dallas Fed Working Paper 2609</a> ·
+      Inflation: <a href="https://www.bls.gov/cpi/" target="_blank" rel="noopener">BLS Consumer Price Index (CPI-U)</a>
+    </p>
+    <p>
+      Notes: quarterly averages; 2026 Q2 partial (Apr–early Jun). Real dollars deflated to 2026 using annual CPI-U.
+      Pump spread = pump price − crude cost per gallon (WTI ÷ 42), covering refining, distribution, retail margin, and taxes.
+      Regional quarterlies derived from national quarterly prices scaled by each region's annual EIA differential.
+    </p>
+  </footer>
+</main>
+
+<script>
+Chart.register(window['chartjs-plugin-annotation']);
+const css = (name) => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+Chart.defaults.font.family = "'Inter', -apple-system, sans-serif";
+Chart.defaults.color = isDark ? '#b8b5a9' : '#6e6c64';
+Chart.defaults.borderColor = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)';
+
+const startYear = 2016;
+const labels = [];
+for (let y = 2016; y <= 2026; y++) {
+  const maxQ = y === 2026 ? 2 : 4;
+  for (let q = 1; q <= maxQ; q++) labels.push(y + ' Q' + q);
+}
+const wtiQ = [33.5,45.6,44.9,49.3, 51.9,48.2,48.2,55.3, 62.9,68.0,69.5,58.8, 54.9,59.8,56.4,56.9, 46.2,27.8,40.9,42.7, 57.8,66.1,70.6,77.2, 94.3,108.4,91.6,82.6, 76.1,73.8,82.2,78.3, 76.9,80.7,75.3,70.4, 71.4,63.7,64.9,59.8, 71.0,89.0];
+const usGasQ = [1.86,2.21,2.18,2.20, 2.30,2.39,2.41,2.56, 2.56,2.84,2.84,2.65, 2.36,2.76,2.66,2.61, 2.40,1.94,2.17,2.19, 2.58,2.93,3.14,3.36, 3.50,4.49,4.06,3.69, 3.39,3.55,3.74,3.36, 3.21,3.55,3.36,3.07, 3.07,3.16,3.18,3.11, 3.25,4.30];
+const usAnnual = [2.14,2.42,2.72,2.60,2.18,3.01,3.95,3.52,3.30,3.13,3.60];
+const regAnnual = {
+  'US average':     usAnnual,
+  'East Coast':     [2.10,2.39,2.66,2.56,2.16,2.97,3.86,3.41,3.26,3.05,3.50],
+  'Midwest':        [2.05,2.32,2.62,2.51,2.03,2.91,3.83,3.39,3.16,2.98,3.50],
+  'Gulf Coast':     [1.93,2.21,2.46,2.31,1.86,2.72,3.55,3.10,2.86,2.70,3.25],
+  'Rocky Mountain': [2.16,2.42,2.84,2.71,2.21,3.27,4.00,3.62,3.21,3.05,3.65],
+  'West Coast':     [2.62,2.93,3.36,3.38,2.87,3.83,4.85,4.43,4.25,4.10,4.55]
+};
+const cpi = [240.0,245.1,251.1,255.7,258.8,271.0,292.7,304.7,313.7,322.3,331.0];
+const defl = cpi.map((c) => 331.0 / c);
+const yearIdx = (i) => parseInt(labels[i].slice(0, 4), 10) - startYear;
+let region = 'US average', real = false, view = 'Prices';
+const lastIdx = labels.length - 1;
+
+function gasSeries() {
+  return usGasQ.map((v, i) => {
+    const yi = yearIdx(i);
+    let x = v * (regAnnual[region][yi] / usAnnual[yi]);
+    if (real) x *= defl[yi];
+    return Math.round(x * 100) / 100;
+  });
+}
+function crudeSeries() {
+  return wtiQ.map((v, i) => Math.round(v * (real ? defl[yearIdx(i)] : 1) * 10) / 10);
+}
+function spreadSeries() {
+  const g = gasSeries(), c = crudeSeries();
+  return g.map((v, i) => Math.round((v - c[i] / 42) * 100) / 100);
+}
+function pearson(a, b) {
+  const n = a.length;
+  const ma = a.reduce((s, v) => s + v, 0) / n, mb = b.reduce((s, v) => s + v, 0) / n;
+  let num = 0, da = 0, db = 0;
+  for (let i = 0; i < n; i++) { num += (a[i]-ma)*(b[i]-mb); da += (a[i]-ma)**2; db += (b[i]-mb)**2; }
+  return num / Math.sqrt(da * db);
+}
+
+const COLOR = {
+  crude: isDark ? '#85b7eb' : '#185fa5',
+  gas: isDark ? '#f0997b' : '#d85a30',
+  spread: isDark ? '#5dcaa5' : '#0f6e56',
+  spreadFill: isDark ? 'rgba(93,202,165,0.14)' : 'rgba(29,158,117,0.12)',
+  dropBadge: isDark ? '#f09595' : '#e24b4a',
+  surgeBadge: isDark ? '#fac775' : '#ba7517'
+};
+const badge = (n, color) => ({ display: true, content: String(n), position: { x: 'center', y: 'start' }, color: color, font: { size: 12, weight: 500 }, padding: 2 });
+const zones = {
+  z1: { type: 'box', xMin: 10.4, xMax: 12.4, backgroundColor: 'rgba(226,75,74,0.09)', borderWidth: 0, label: badge(1, COLOR.dropBadge) },
+  z2: { type: 'box', xMin: 15.6, xMax: 18.4, backgroundColor: 'rgba(226,75,74,0.09)', borderWidth: 0, label: badge(2, COLOR.dropBadge) },
+  z3: { type: 'box', xMin: 23.6, xMax: 26.4, backgroundColor: 'rgba(239,159,39,0.10)', borderWidth: 0, label: badge(3, COLOR.surgeBadge) },
+  z4: { type: 'box', xMin: 39.6, xMax: 41.2, backgroundColor: 'rgba(239,159,39,0.10)', borderWidth: 0, label: badge(4, COLOR.surgeBadge) }
+};
+const baseDs = (color, dash) => ({
+  borderColor: color, backgroundColor: color, tension: 0.25, borderWidth: 2.5,
+  pointRadius: (c) => c.dataIndex === lastIdx ? 5 : 0, pointHoverRadius: 5,
+  borderDash: dash
+});
+
+const chart = new Chart(document.getElementById('qChart'), {
+  type: 'line',
+  data: { labels: labels, datasets: [] },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    interaction: { mode: 'index', intersect: false },
+    layout: { padding: { top: 18 } },
+    plugins: {
+      legend: { display: false },
+      annotation: { annotations: zones },
+      tooltip: {
+        callbacks: {
+          label: (c) => {
+            const d = real ? ' (2026 $)' : '';
+            if (view === 'Pump spread') return ' Pump spread: $' + c.parsed.y.toFixed(2) + '/gal' + d;
+            return c.datasetIndex === 0
+              ? ' WTI crude: $' + c.parsed.y.toFixed(1) + '/bbl' + d
+              : ' ' + region + ' gas: $' + c.parsed.y.toFixed(2) + '/gal' + d;
+          },
+          footer: (items) => {
+            const i = items[0].dataIndex;
+            if (i === lastIdx) return 'Partial quarter · Iran war zone (4)';
+            if (i >= 10 && i <= 12) return 'Zone 1: oversupply slide';
+            if (i >= 16 && i <= 18) return 'Zone 2: COVID crash';
+            if (i >= 24 && i <= 26) return 'Zone 3: Ukraine spike';
+            if (i >= 40) return 'Zone 4: Iran war';
+            return '';
+          }
+        }
+      }
+    },
+    scales: {
+      x: {
+        ticks: {
+          autoSkip: false, maxRotation: 0, font: { size: 10 },
+          callback: function(val) {
+            const l = this.getLabelForValue(val);
+            if (!l.endsWith('Q1')) return '';
+            const yr = l.slice(0, 4);
+            return parseInt(yr, 10) % 2 === 0 ? yr : '\u2019' + yr.slice(2);
+          }
+        },
+        grid: { color: (c) => c.tick && labels[c.tick.value] && labels[c.tick.value].endsWith('Q1') ? 'rgba(128,128,128,0.15)' : 'rgba(0,0,0,0)' }
+      },
+      yOil: { position: 'left', title: { display: true, text: 'Crude ($/bbl)' }, min: 20, max: 115, ticks: { callback: (v) => '$' + v } },
+      yGas: { position: 'right', title: { display: true, text: 'Gas ($/gal)' }, min: 1.5, max: 5.0, grid: { drawOnChartArea: false }, ticks: { callback: (v) => '$' + Number(v).toFixed(2) } }
+    }
+  }
+});
+
+function setText(id, t) { document.getElementById(id).textContent = t; }
+
+function rebuild() {
+  const d = real ? ' (2026 $)' : '';
+  if (view === 'Prices') {
+    const c = crudeSeries(), g = gasSeries();
+    chart.data.datasets = [
+      Object.assign(baseDs(COLOR.crude), {
+        data: c, yAxisID: 'yOil',
+        pointStyle: (x) => x.dataIndex === lastIdx ? 'rectRot' : 'circle',
+        segment: { borderDash: (x) => x.p1DataIndex === lastIdx ? [3, 3] : undefined }
+      }),
+      Object.assign(baseDs(COLOR.gas, [6, 4]), { data: g, yAxisID: 'yGas', pointStyle: 'rect' })
+    ];
+    chart.options.scales.yOil.display = true;
+    chart.options.scales.yOil.max = real ? 130 : 115;
+    chart.options.scales.yGas.position = 'right';
+    chart.options.scales.yGas.title.text = 'Gas ($/gal)' + d;
+    chart.options.scales.yGas.min = 1.5;
+    chart.options.scales.yGas.max = Math.ceil((Math.max(...g) + 0.3) * 2) / 2;
+    document.getElementById('leg1').style.display = 'flex';
+    document.getElementById('leg1Swatch').style.borderTop = '3px solid ' + COLOR.crude;
+    setText('leg1Text', 'WTI crude ($/bbl, left)' + d);
+    document.getElementById('leg2Swatch').style.borderTop = '3px dashed ' + COLOR.gas;
+    setText('leg2Text', 'Gasoline — ' + region + ' ($/gal, right)' + d);
+    setText('card3Label', 'Crude–gas correlation');
+    setText('card3Value', pearson(crudeSeries(), gasSeries()).toFixed(2));
+    setText('card3Sub', '42 quarters, ' + region);
+  } else {
+    const s = spreadSeries();
+    chart.data.datasets = [
+      Object.assign(baseDs(COLOR.spread), {
+        data: s, yAxisID: 'yGas', fill: true, backgroundColor: COLOR.spreadFill,
+        pointStyle: (x) => x.dataIndex === lastIdx ? 'rectRot' : 'circle',
+        segment: { borderDash: (x) => x.p1DataIndex === lastIdx ? [3, 3] : undefined }
+      })
+    ];
+    chart.options.scales.yOil.display = false;
+    chart.options.scales.yGas.position = 'left';
+    chart.options.scales.yGas.title.text = 'Pump price − crude ($/gal)' + d;
+    chart.options.scales.yGas.min = Math.floor((Math.min(...s) - 0.2) * 2) / 2;
+    chart.options.scales.yGas.max = Math.ceil((Math.max(...s) + 0.2) * 2) / 2;
+    document.getElementById('leg1').style.display = 'none';
+    document.getElementById('leg2Swatch').style.borderTop = '3px solid ' + COLOR.spread;
+    setText('leg2Text', 'Pump spread — ' + region + ' ($/gal)' + d);
+    const avg = s.reduce((a, b) => a + b, 0) / s.length;
+    setText('card3Label', 'Avg pump spread');
+    setText('card3Value', '$' + avg.toFixed(2) + '/gal');
+    setText('card3Sub', 'Now: $' + s[lastIdx].toFixed(2) + '/gal');
+  }
+  const c = crudeSeries(), g = gasSeries();
+  setText('card1Label', 'WTI crude, Q2 2026' + d);
+  setText('card1Value', '$' + Math.round(c[lastIdx]) + '/bbl');
+  setText('card1Sub', real ? 'Real 2022 peak: $' + Math.round(108.4 * defl[6]) + '/bbl' : '+49% since Jan');
+  setText('card2Label', 'Gas, ' + region.toLowerCase() + ', Q2 2026' + d);
+  setText('card2Value', '$' + g[lastIdx].toFixed(2) + '/gal');
+  const pct = Math.round((g[lastIdx] / g[lastIdx - 1] - 1) * 100);
+  setText('card2Sub', '+' + pct + '% vs Q1');
+  chart.update();
+}
+
+function makeBtns(containerId, names, activeName, onPick, small) {
+  const wrap = document.getElementById(containerId);
+  names.forEach((name) => {
+    const b = document.createElement('button');
+    b.textContent = name;
+    if (small) b.classList.add('small');
+    if (name === activeName) b.classList.add('active');
+    b.addEventListener('click', () => {
+      onPick(name);
+      wrap.querySelectorAll('button').forEach((x) => x.classList.remove('active'));
+      b.classList.add('active');
+      rebuild();
+    });
+    wrap.appendChild(b);
+  });
+}
+makeBtns('regionBtns', Object.keys(regAnnual), 'US average', (n) => { region = n; }, false);
+makeBtns('dollarBtns', ['Nominal', 'Real (2026 $)'], 'Nominal', (n) => { real = n !== 'Nominal'; }, true);
+makeBtns('viewBtns', ['Prices', 'Pump spread'], 'Prices', (n) => { view = n; }, true);
+rebuild();
+</script>
+</body>
+</html>
